@@ -9,7 +9,7 @@ const Navbar = () => {
   const {user, logout} = useContext(AppContext)
 
   return (
-    <div className='w-full z-30 fixed flex items-center justify-between md:px-30 px-4 py-2 border-b-1 border-b-gray-300 bg-gradient-to-t from-gray-100 to-white shadow-sm rounded-b-xl'>
+    <div className='z-30 fixed w-full flex items-center justify-between md:px-30 px-4 py-2 border-b-1 border-b-gray-300 bg-gradient-to-t from-gray-100 to-white shadow-sm rounded-b-xl'>
         <div className='flex gap-3 items-center'>
             <img src={logo} className='md:w-15 w-10' alt="" />
             <span className='font-medium md:text-2xl text-[20px] text-gray-800'>Expance Tracker</span>
