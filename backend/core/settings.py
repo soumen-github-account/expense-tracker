@@ -32,9 +32,11 @@ SECRET_KEY = 'django-insecure-)_l2t3@fzr*)378%j!immju96hmxmqblzbue+xy#t5u&p2x#f8
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# ALLOWED_HOSTS = ['.onrender.com', 'localhost']
-# ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '.onrender.com',
+]
 
 
 # Application definition
@@ -131,8 +133,10 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 # }
 
 DATABASES = {
-    'default': dj_database_url.parse(
-        os.environ.get("DATABASE_URL")
+    'default': dj_database_url.config(
+        default=os.environ.get("DATABASE_URL"),
+        conn_max_age=600,
+        ssl_require=True,
     )
 }
 
