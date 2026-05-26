@@ -14,34 +14,47 @@ import { AppContext } from '../contexts/AppContext';
 import UpdateWalletDialog from '../components/UpdateWalletDialog';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { LuLoaderCircle } from 'react-icons/lu';
 
 const Wallets = () => {
-  const {walletData, rupeeIcon, fetchWalletData, backendUrl} = useContext(AppContext);
+  const {walletData, rupeeIcon, fetchWalletData, backendUrl, getAccessToken} = useContext(AppContext);
   const [isOpen, setIsOpen] = useState(false);
   const [upOpen, setUpOpen] = useState(false);
   const [openTransfer, setOpenTransfer] = useState(false)
   const [record, setRecord] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [delloading, setDelloading] = useState(false)
+
   const fetchRecord = async (id) => {
       try {
+        setLoading(true)
+        const token = getAccessToken();
         const res = await axios.get(
-          `${backendUrl}/api/wallets/${id}/`
+          `${backendUrl}/api/wallets/${id}/`, {headers: {Authorization: `Bearer ${token}`}}
         );
         setRecord(res.data);
         console.log(res.data)
         setUpOpen(true);
+        setLoading(false)
       } catch (err) {
         console.error("Failed to fetch record:", err.message);
+        toast.error("something went wrong");
+        setLoading(false)
       }
     };
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`${backendUrl}/api/wallets/${id}/`);
+      setDelloading(true)
+      const token = getAccessToken();
+      await axios.delete(`${backendUrl}/api/wallets/${id}/`, {headers: {Authorization: `Bearer ${token}`}});
       fetchWalletData();
+      setDelloading(false)
       toast.success("Wallet deleted");
     } catch (err) {
       console.error(err);
       toast.error("Failed to delete");
+      setDelloading(false)
     }
   };
 
@@ -75,8 +88,8 @@ const Wallets = () => {
                   <span className={`py-1 rounded-full px-3 text-[14px] ${item.type === 'Bank' ? 'text-green-600 bg-green-100' : item.type==='Cash' ? 'text-violet-600 bg-violet-100' : 'text-blue-600 bg-blue-100'}`}>{item.type}</span>
                 </div>
                 <div className='flex items-center gap-3 text-gray-500 text-[17px]'>
-                  <FiEdit onClick={()=>fetchRecord(item.id)} className='hover:text-blue-600 duration-300 cursor-pointer'/>
-                  <RiDeleteBin6Line onClick={()=>handleDelete(item.id)} className='hover:text-red-600 duration-300 cursor-pointer'/>
+                  {loading ? <LuLoaderCircle className='animate-spin transition-all duration-700' /> : <FiEdit onClick={()=>fetchRecord(item.id)} className='hover:text-blue-600 duration-300 cursor-pointer'/>}
+                  {delloading ? <LuLoaderCircle className='animate-spin transition-all duration-700' /> : <RiDeleteBin6Line onClick={()=>handleDelete(item.id)} className='hover:text-red-600 duration-300 cursor-pointer'/>}
                 </div>
               </div>
               <div className='flex justify-between mt-3'>

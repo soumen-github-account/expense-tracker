@@ -5,9 +5,10 @@ import { CiWallet } from "react-icons/ci";
 import axios from "axios";
 
 import { FaMoneyBillWave, FaBriefcase, FaChartLine, FaPlusCircle, FaUniversity } from "react-icons/fa";
-import { walletData } from "../assets/data";
+// import { walletData } from "../assets/data";
 import toast from 'react-hot-toast'
 import { AppContext } from "../contexts/AppContext";
+import { LuLoaderCircle } from "react-icons/lu";
 
 const categories = [
   { id: 1, name: "Salary", icon: <FaMoneyBillWave className="text-green-500" /> },
@@ -23,7 +24,7 @@ const categories = [
 ];
 
 const UpdateExpanseDialog = ({ upOpen, setUpOpen, record}) => {
-  const {fetchTrackData, backendUrl} = useContext(AppContext)
+  const {fetchTrackData, backendUrl, getAccessToken, walletData} = useContext(AppContext)
   const [query, setQuery] = useState("");
   const [state, setState] = useState('expanse')
   const [selected, setSelected] = useState(null);
@@ -32,6 +33,9 @@ const UpdateExpanseDialog = ({ upOpen, setUpOpen, record}) => {
   const [rupee, setRupee] = useState();
   const [note, setNote] = useState('')
   const [referance, setReferance] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [delloading, setDelloading] = useState(false)
+
 
   const filtered = categories.filter((cat) =>
     cat.name.toLowerCase().includes(query.toLowerCase())
@@ -74,25 +78,33 @@ const UpdateExpanseDialog = ({ upOpen, setUpOpen, record}) => {
     };
 
     try {
-      const res = await axios.put(`${backendUrl}/api/tracker/trackdata/${record.id}/`, payload);
+      setLoading(true)
+      const token = getAccessToken();
+      const res = await axios.put(`${backendUrl}/api/tracker/trackdata/${record.id}/`, payload, {headers: {Authorization: `Bearer ${token}`}});
       console.log("Saved:", res.data);
       fetchTrackData()
       toast.success("data saved")
       setUpOpen(false);
+      setLoading(false)
     } catch (err) {
       console.error(err);
+      setLoading(false)
     }
   };
 
   const handleDelete = async () => {
     try {
-        await axios.delete(`${backendUrl}/api/tracker/trackdata/${record.id}/`);
+        setDelloading(true)
+        const token = getAccessToken()
+        await axios.delete(`${backendUrl}/api/tracker/trackdata/${record.id}/`, {headers: {Authorization: `Bearer ${token}`}});
         fetchTrackData();
         toast.success("Record deleted");
         setUpOpen(false);
+        setDelloading(false)
     } catch (err) {
         console.error(err);
         toast.error("Failed to delete");
+        setDelloading(false)
     }
     };
 
@@ -131,7 +143,7 @@ const UpdateExpanseDialog = ({ upOpen, setUpOpen, record}) => {
                 <option value="">Select a wallet</option>
                 {
                   walletData.map((wallet)=>(
-                    <option value={wallet.name}>{wallet.name}</option>
+                    <option value={wallet.id}>{wallet.name}</option>
                   ))
                 }
                 {/* <option value='Cash'>Cash</option>
@@ -223,10 +235,25 @@ const UpdateExpanseDialog = ({ upOpen, setUpOpen, record}) => {
 
               {/* Button */}
                 <div className="flex items-center gap-3">
-                    <button onClick={handleSubmit} className='w-full py-2 rounded-lg text-white cursor-pointer bg-blue-500'>
-                        Update {state}
+                    <button disabled={loading} onClick={handleSubmit} className='w-full py-2 rounded-lg text-white cursor-pointer bg-blue-500'>
+                        {
+                          loading ? 
+                          <span className='flex w-full items-center justify-center gap-3'>
+                            <LuLoaderCircle className='animate-spin transition-all duration-700' />
+                            please wait...
+                          </span> : `Update ${state}`
+                        }
                     </button>
-                    <button onClick={handleDelete} className="bg-red-100 rounded-md text-red-500 px-6 py-2 cursor-pointer hover:bg-red-500 hover:text-white duration-300">Delete</button>
+                    <button disabled={delloading} onClick={handleDelete} className="bg-red-100 rounded-md text-red-500 px-6 py-2 cursor-pointer hover:bg-red-500 hover:text-white duration-300">
+                      {
+                        delloading ? 
+                        <span className='flex w-full items-center justify-center gap-3'>
+                          <LuLoaderCircle className='animate-spin transition-all duration-700' />
+                          please wait...
+                        </span> : "Delete"
+                      }
+                      
+                    </button>
                 </div>
             </motion.div>
           </div>

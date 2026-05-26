@@ -8,11 +8,9 @@ const ProtectedRoute = ({ children }) => {
   if (loading) return <p>Loading...</p>; // spinner until user is checked
 
   if (!user) {
-    // ❌ No user → redirect to login
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
-  // ✅ User logged in → allow access
   return children;
 };
 

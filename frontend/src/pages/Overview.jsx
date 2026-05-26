@@ -21,7 +21,7 @@ const categories = [
 ];
 
 const Overview = () => {
-  const {trackData, backendUrl} = useContext(AppContext)
+  const {trackData, backendUrl, getAccessToken} = useContext(AppContext)
 
   const [state, setState] = useState('daily');
   const [expenseData, setExpenseData] = useState([]);
@@ -52,8 +52,9 @@ const Overview = () => {
 
   const fetchRecord = async (id) => {
       try {
+        const token = getAccessToken();
         const res = await axios.get(
-          `${backendUrl}/api/tracker/trackdata/${id}/`
+          `${backendUrl}/api/tracker/trackdata/${id}/`, {headers: {Authorization: `Bearer ${token}`}}
         );
         setRecord(res.data);
         console.log(res.data)

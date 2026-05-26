@@ -18,7 +18,7 @@ const App = () => {
       <Toaster position="top-right" reverseOrder={false} />
       <Routes>
         <Route path='/' element={<Home />} />
-        <Route path='/layout' element={<Layout />}>
+        <Route path='/layout' element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route index element={<Overview />} />
           <Route path='stats' element={<Stats />} />
           <Route path='chat' element={<Chats />} />

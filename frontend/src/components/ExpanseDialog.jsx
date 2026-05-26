@@ -6,8 +6,9 @@ import axios from "axios";
 
 import { FaMoneyBillWave, FaBriefcase, FaChartLine, FaPlusCircle, FaUniversity } from "react-icons/fa";
 // import { walletData } from "../assets/data";
-import toast from 'react-hot-toast'
 import { AppContext } from "../contexts/AppContext";
+import {toast} from 'react-hot-toast'
+import { LuLoaderCircle } from "react-icons/lu";
 
 const categories = [
   { id: 1, name: "Salary", icon: <FaMoneyBillWave className="text-green-500" /> },
@@ -23,7 +24,7 @@ const categories = [
 ];
 
 const ExpenseDialog = ({ isOpen, setIsOpen }) => {
-  const {fetchTrackData, walletData} = useContext(AppContext)
+  const {fetchTrackData, walletData, getAccessToken, backendUrl} = useContext(AppContext)
   const [query, setQuery] = useState("");
   const [state, setState] = useState('expanse')
   const [selected, setSelected] = useState(null);
@@ -32,7 +33,8 @@ const ExpenseDialog = ({ isOpen, setIsOpen }) => {
   const [rupee, setRupee] = useState();
   const [note, setNote] = useState('')
   const [referance, setReferance] = useState('')
-
+  const [loading, setLoading] = useState(false)
+  
   const filtered = categories.filter((cat) =>
     cat.name.toLowerCase().includes(query.toLowerCase())
   );
@@ -55,7 +57,9 @@ const ExpenseDialog = ({ isOpen, setIsOpen }) => {
     };
 
     try {
-      const res = await axios.post("http://localhost:8000/api/tracker/trackdata/", payload);
+      setLoading(true)
+      const token = getAccessToken();
+      const res = await axios.post(backendUrl+"/api/tracker/trackdata/", payload, {headers: {Authorization: `Bearer ${token}`}});
       console.log("Saved:", res.data);
       fetchTrackData()
       toast.success("data saved")
@@ -66,8 +70,14 @@ const ExpenseDialog = ({ isOpen, setIsOpen }) => {
       setNote("");
       setReferance("");
       setSelected(null);
+      setLoading(false)
     } catch (err) {
-      console.error(err);
+      setLoading(false)
+      if (err.response?.data?.wallet) {
+        toast.error(err.response.data.wallet);
+      } else {
+        toast.error("Something went wrong");
+      }
     }
   };
 
@@ -196,8 +206,15 @@ const ExpenseDialog = ({ isOpen, setIsOpen }) => {
               />
 
               {/* Button */}
-              <button onClick={handleSubmit} className='w-full py-2 rounded-lg text-white cursor-pointer bg-blue-500'>
-                Add {state}
+              <button disabled={loading} onClick={handleSubmit} className='w-full py-2 rounded-lg text-white cursor-pointer bg-blue-500'>
+                {
+                  loading ? 
+                  <span className='flex w-full items-center justify-center gap-3'>
+                    <LuLoaderCircle className='animate-spin transition-all duration-700' />
+                    please wait...
+                  </span> : `Add ${state}`
+                }
+                
               </button>
             </motion.div>
           </div>

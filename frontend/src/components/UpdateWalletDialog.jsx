@@ -6,6 +6,7 @@ import { GoCreditCard } from "react-icons/go";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { AppContext } from "../contexts/AppContext";
+import { LuLoaderCircle } from "react-icons/lu";
 
 const wallet = [
   { id: 1, name: "Bank", icon: <div className="text-green-600"><RiBankLine /></div> },
@@ -13,11 +14,12 @@ const wallet = [
   { id: 3, name: "Cash", icon: <div className="text-violet-600"><BsCashStack /></div> }
 ]
 const UpdateWalletDialog = ({upOpen, setUpOpen, record}) => {
-  const {fetchWalletData, backendUrl} = useContext(AppContext)
+  const {fetchWalletData, backendUrl, getAccessToken} = useContext(AppContext)
   const [walletName, setWalletName] = useState("");
   const [walletBalance, setWalletBalance] = useState(0);
   
   const [walletType, setWalletType] = useState("Bank");
+  const [loading, setLoading] = useState(false)
 
   const handleSave = async() => {
     if (!walletName.trim()) {
@@ -25,22 +27,26 @@ const UpdateWalletDialog = ({upOpen, setUpOpen, record}) => {
       return;
     }
     try {
+      setLoading(true)
+      const token = getAccessToken()
       const response = await axios.put(backendUrl + `/api/wallets/${record.id}/`, {
         name: walletName,
         rupee: parseFloat(walletBalance),
         type: walletType,
         transaction: 0, // default
-      });
-      toast.success("Walle created")
+      }, {headers: {Authorization: `Bearer ${token}`}});
+      toast.success("Wallet created")
 
       setWalletName("");
       setWalletBalance("");
       setWalletType("Bank");
       fetchWalletData();
+      setLoading(false)
       setUpOpen(false);
     } catch (error) {
       console.error("Error adding wallet:", error);
       alert("Failed toupdate wallet");
+      setLoading(false)
     }
     setWalletName("");
     setWalletType("Bank");
@@ -143,7 +149,13 @@ const UpdateWalletDialog = ({upOpen, setUpOpen, record}) => {
             onClick={handleSave}
             className="px-6 py-1.5 cursor-pointer rounded bg-green-600 text-white hover:bg-green-700"
           >
-            save
+            {
+              loading ? 
+              <span className='flex w-full items-center justify-center gap-3'>
+                <LuLoaderCircle className='animate-spin transition-all duration-700' />
+                please wait...
+              </span> : "save"
+            }
           </button>
         </div>
       </div>

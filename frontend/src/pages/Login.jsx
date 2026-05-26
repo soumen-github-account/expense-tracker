@@ -5,6 +5,7 @@ import login_img from '../assets/login_img.png'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { AppContext } from '../contexts/AppContext'
+import { LuLoaderCircle } from "react-icons/lu";
 
 const Login = () => {
   const navigate = useNavigate()
@@ -13,10 +14,12 @@ const Login = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const {loadUser, backendUrl} = useContext(AppContext)
+  const [loading, setLoading] = useState(false)
 
   const submitHandler = async(e)=>{
     e.preventDefault();
     try {
+      setLoading(true)
       if(state==='login'){
         const res = await fetch(backendUrl + "/api/login/", {
           method: "POST",
@@ -32,9 +35,11 @@ const Login = () => {
           localStorage.setItem("refresh", data.refresh)
           toast.success("Login successfull")
           loadUser();
+          setLoading(false)
           navigate("/layout")
         } else{
           toast.error(data.detail || "Invalid credentials")
+          setLoading(false)
         }
       } else{
         // Register user
@@ -52,19 +57,22 @@ const Login = () => {
 
         if (res.ok) {
           toast.success("Account created 🎉 Please login");
-          setState("login"); // switch to login tab
+          setLoading(false)
+          setState("login");
         } else {
           toast.error(data.message || "Registration failed");
+          setLoading(false)
         }
       }
     } catch (error) {
       toast.error(error.message)
+      setLoading(false)
     }
   }
 
   return (
     <div className='flex items-center justify-center min-h-[100vh] py-4'>
-      <div className='w-full max-w-[900px] min-h-[80vh] border border-gray-200 shadow-md rounded-md flex flex-col md:flex-row justify-between mx-4'>
+      <div className='w-full max-w-[900px] min-h-[40vh] border border-gray-200 shadow-md rounded-md flex flex-col md:flex-row justify-between mx-4'>
         <div className='p-6 flex flex-col w-full md:w-1/2'>
 
             <div className='flex items-center justify-between gap-2'>
@@ -110,23 +118,35 @@ const Login = () => {
 
           } */}
           </div>
-          <button type='submit' className='w-full items-center justify-center py-2 rounded-md bg-[#10B981] text-white cursor-pointer my-3'>{state === 'login' ? 'Sign In' : 'Sign Up'}</button>
+          <button disabled={loading} type='submit' className={`w-full items-center justify-center py-2 rounded-md ${loading ? "bg-[#dbfff3] text-gray-500 cursor-no-drop" : "bg-[#10B981] text-white cursor-pointer"} my-3`}>
+            {
+              loading ? (
+                <span className='flex w-full items-center justify-center gap-3'>
+                  <LuLoaderCircle className='animate-spin transition-all duration-700' />
+                  please wait...
+                </span>
+              ) : (
+                <div>{state === 'login' ? 'Sign In' : 'Sign Up'}</div>
+              )
+            }
+          </button>
 
           </form>
           
-          <div className='flex items-center justify-between gap-2'>
+          {/* <div className='flex items-center justify-between gap-2'>
             <hr className='md:min-w-50 w-full text-gray-300'/>
               or
             <hr className='md:min-w-50 w-full text-gray-300' />
-          </div>
-        <button className='flex gap-4 rounded-md border-1 border-gray-300 bg-gray-50 py-1.5 px-3 items-center w-full justify-center cursor-pointer mt-4'>
+          </div> */}
+
+        {/* <button className='flex gap-4 rounded-md border-1 border-gray-300 bg-gray-50 py-1.5 px-3 items-center w-full justify-center cursor-pointer mt-4'>
           <img src={google_icon} className='w-7' alt="" />
           Sign in with Google
         </button>
         <button className='flex gap-4 rounded-md border-1 border-gray-300 bg-gray-50 py-1.5 px-3 items-center w-full justify-center cursor-pointer mt-4'>
           <img src={facebook_icon} className='w-7' alt="" />
           Sign in with Facebook
-        </button>
+        </button> */}
         </div>
 
         <div className='max-w-[30vw] hidden md:block'>

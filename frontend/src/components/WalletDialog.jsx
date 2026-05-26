@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { GiCrossMark } from "react-icons/gi";
 import { BsCashStack } from "react-icons/bs";
 import { RiBankLine } from "react-icons/ri";
@@ -6,6 +6,7 @@ import { GoCreditCard } from "react-icons/go";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { AppContext } from "../contexts/AppContext";
+import { LuLoaderCircle } from "react-icons/lu";
 
 const wallet = [
   { id: 1, name: "Bank", icon: <div className="text-green-600"><RiBankLine /></div> },
@@ -13,34 +14,45 @@ const wallet = [
   { id: 3, name: "Cash", icon: <div className="text-violet-600"><BsCashStack /></div> }
 ]
 const WalletDialog = ({ isOpen, setIsOpen }) => {
-  const {fetchWalletData, backendUrl} = useContext(AppContext)
+  const {fetchWalletData, backendUrl, getAccessToken} = useContext(AppContext)
   const [walletName, setWalletName] = useState("");
   const [walletBalance, setWalletBalance] = useState();
   
   const [walletType, setWalletType] = useState("Bank");
+  const [loading, setLoading] = useState(false)
 
   const handleAdd = async() => {
+    const token = getAccessToken();
     if (!walletName.trim()) {
       alert("Please enter wallet name");
       return;
     }
     try {
+      setLoading(true)
       const response = await axios.post(backendUrl + "/api/wallets/", {
         name: walletName,
         rupee: parseFloat(walletBalance),
         type: walletType,
         transaction: 0, // default
-      });
+      }, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          }
+      }
+      );
       toast.success("Walle created")
 
       setWalletName("");
       setWalletBalance("");
       setWalletType("Bank");
       fetchWalletData();
+      setLoading(false)
       setIsOpen(false);
     } catch (error) {
       console.error("Error adding wallet:", error);
       alert("Failed to add wallet");
+      setLoading(false)
     }
     setWalletName("");
     setWalletType("Bank");
@@ -131,10 +143,18 @@ const WalletDialog = ({ isOpen, setIsOpen }) => {
             Cancel
           </button>
           <button
+            disabled={loading}
             onClick={handleAdd}
             className="px-6 py-1.5 cursor-pointer rounded bg-green-600 text-white hover:bg-green-700"
           >
-            Add
+            {
+              loading ? 
+              <span className='flex w-full items-center justify-center gap-3'>
+                <LuLoaderCircle className='animate-spin transition-all duration-700' />
+                please wait...
+              </span> : "Add"
+            }
+            
           </button>
         </div>
       </div>

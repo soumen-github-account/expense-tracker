@@ -4,23 +4,27 @@ import { GiCrossMark } from 'react-icons/gi';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import { AppContext } from '../contexts/AppContext';
+import { LuLoaderCircle } from 'react-icons/lu';
 
 const WalletTransfer = ({openTransfer, setOpenTransfer}) => {
-  const {walletData, fetchWalletData, backendUrl, rupeeIcon} = useContext(AppContext)
+  const {walletData, fetchWalletData, backendUrl, rupeeIcon, getAccessToken} = useContext(AppContext)
   // const [wallets, setWallets] = useState([]);
   const [fromWallet, setFromWallet] = useState("");
   const [toWallet, setToWallet] = useState("");
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleTransfer = async () => {
     try {
+      setLoading(true)
+      const token = getAccessToken();
       const res = await axios.post(backendUrl + "/api/wallets/transfer/", {
         from_wallet: fromWallet,
         to_wallet: toWallet,
         amount: amount,
         note: note,
-      });
+      }, {headers: {Authorization: `Bearer ${token}`}});
 
       toast.success(res.data.message);
       fetchWalletData();
@@ -28,9 +32,11 @@ const WalletTransfer = ({openTransfer, setOpenTransfer}) => {
       setFromWallet('');
       setToWallet('')
       setNote('')
+      setLoading(false)
       setOpenTransfer(false);
     } catch (error) {
       toast.error(error.response?.data?.error || "Transfer failed");
+      setLoading(false)
     }
   };
   
@@ -91,10 +97,17 @@ const WalletTransfer = ({openTransfer, setOpenTransfer}) => {
                   Cancel
                 </button>
                 <button
+                  disabled={true}
                   onClick={handleTransfer}
                   className="px-6 py-1.5 cursor-pointer rounded bg-blue-600 text-white hover:bg-blue-700"
                 >
-                  Transfer
+                  {
+                    loading ? 
+                    <span className='flex w-full items-center justify-center gap-3'>
+                      <LuLoaderCircle className='animate-spin transition-all duration-700' />
+                      please wait...
+                    </span> : "Transfar"
+                  }
                 </button>
               </div>
             </div>

@@ -76,6 +76,7 @@ export const AppContextProvider = (props) => {
     if (res.ok) {
       const data = await res.json();
       setUser(data);
+      console.log(data)
     } else {
       setUser(null);
     }
@@ -84,7 +85,8 @@ export const AppContextProvider = (props) => {
   };
 
   const fetchTrackData = async()=>{
-    await axios.get(backendUrl + "/api/tracker/trackdata/")
+    const token = getAccessToken();
+    await axios.get(backendUrl + "/api/tracker/trackdata/", {headers:{Authorization: `Bearer ${token}`}})
     .then((res)=>{
       setTrackData(res.data)
     })
@@ -94,7 +96,8 @@ export const AppContextProvider = (props) => {
   }
 
   const fetchWalletData = async()=>{
-    await axios.get(backendUrl + '/api/wallets/')
+    const token = getAccessToken();
+    await axios.get(backendUrl + '/api/wallets/', {headers:{Authorization: `Bearer ${token}`}})
     .then((res)=>{
       console.log(res.data)
       setWalletData(res.data)
@@ -121,7 +124,8 @@ export const AppContextProvider = (props) => {
     trackData,
     fetchTrackData,
     walletData,
-    fetchWalletData
+    fetchWalletData,
+    getAccessToken
   };
 
   return (
